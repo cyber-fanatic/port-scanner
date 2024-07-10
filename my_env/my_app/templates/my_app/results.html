@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Port Scanner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #0e0683;
+            text-align: center;
+            text-shadow: 5px 5px 5px #288be9;
+            margin-bottom: 40px;
+        }
+        h2 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        label, input {
+            display: block;
+            margin: 10px auto;
+        }
+        label {
+            color: #0056b3;
+        }
+        input[type="text"] {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        #helpButton {
+            background-color: #ff4d4d;
+            color: white;
+        }
+        #helpButton:hover {
+            background-color: #cc0000;
+        }
+        #usageButton {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #usageButton:hover {
+            background-color: #2e7d32;
+        }
+        #scanButton {
+            background-color: #007bff;
+            color: white;
+            margin-top: 20px;
+        }
+        #scanButton:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .results {
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .help, .usage {
+            background-color: #e0f7fa;
+            padding: 15px;
+            border: 1px solid #00796b;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .help {
+            display: none;
+            background-color: #ffebee;
+        }
+        .usage {
+            display: block;
+        }
+        .results table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .results th, .results td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        .results th {
+            background-color: #f2f2f2;
+        }
+        .results .status {
+            color: green;
+        }
+        .results .closed-status {
+            color: red;
+        }
+        .results .port {
+            color: blue;
+        }
+        .results .start-time {
+            color: green;
+        }
+        .results .end-time {
+            color: orange;
+        }
+        .results .host {
+            color: red;
+        }
+        .results h2 {
+            text-shadow: 2px 2px 4px #aaa;
+            color: #333;
+            text-align: center;
+            background-color: #e0f7fa;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .results hr {
+            border: 0;
+            height: 1px;
+            background: #ddd;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Port Scanner</h1>
+    <button id="helpButton">Help</button>
+    <button id="usageButton">Usage</button>
+    
+    <div id="usage" class="usage">
+        <h2>Usage</h2>
+        <ol>
+            <li>Enter the target host in the 'Host' input field.</li>
+            <li>Enter the target ports in the 'Ports' input field, separated by commas (e.g., 80,443,22).</li>
+            <li>Click the 'Scan' button to start the port scan.</li>
+        </ol>
+    </div>
+    
+    <div id="help" class="help">
+        <h2>Help</h2>
+        <ol>
+            <li>This application performs a port scan on a specified host.</li>
+            <li>You need to provide the host and a list of ports to scan.</li>
+            <li>The scan will check if the specified ports are open on the target host.</li>
+            <li>Syntax for Enter Host :  example.com  OR  IPV4 (0.0.0.0) .</li>
+            <li>Ports range start from 1 and ends on 65535 you can scan one or many ports between this range.</li>
+            <li>Syntax for Enter Ports : 80 OR 80,443,53,21,....</li>
+             
+        </ol>
+    </div>
+    
+    <form action="{% url 'port_scan' %}" method="get">
+        <label for="host">Enter Host:</label>
+        <input type="text" id="host" name="host" placeholder="e.g., example.com or 192.168.1.1" required>
+        <label for="ports">Enter Ports (comma-separated):</label>
+        <input type="text" id="ports" name="ports" placeholder="e.g., 80,443,22" required>
+        <button type="submit" id="scanButton">Scan</button>
+    </form>
+    
+    {% if error %}
+        <div class="error">
+            <p>{{ error }}</p>
+        </div>
+    {% elif open_ports or closed_ports %}
+        <div class="results">
+            <p><strong class="host">Target Host:</strong> {{ target }}</p>
+            <p><strong class="start-time">Scan started at:</strong> {{ start_time }}</p>
+            <p><strong class="end-time">Scan ended at:</strong> {{ end_time }}</p>
+            <h2>Scanning Result</h2>
+            <hr>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Scanned Ports</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for port in open_ports %}
+                        <tr>
+                            <td class="port">{{ port }}</td>
+                            <td class="status">Open</td>
+                        </tr>
+                    {% endfor %}
+                    {% for port in closed_ports %}
+                        <tr>
+                            <td class="port">{{ port }}</td>
+                            <td class="closed-status">Closed</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    <script>
+        document.getElementById('helpButton').addEventListener('click', function() {
+            document.getElementById('usage').style.display = 'none';
+            document.getElementById('help').style.display = 'block';
+        });
+
+        document.getElementById('usageButton').addEventListener('click', function() {
+            document.getElementById('help').style.display = 'none';
+            document.getElementById('usage').style.display = 'block';
+        });
+    </script>
+</body>
+</html>

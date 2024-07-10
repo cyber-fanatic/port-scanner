@@ -1,0 +1,7 @@
+my_env/my_app/__pycache__
+my_env/my_app/migrations
+my_env/my_app/migrations/0001_initial.py
+my_env/pyvenv.cfg
+my_proj/__pycache__
+my_env/Lib
+my_env/Scripts
